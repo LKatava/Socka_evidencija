@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import streamlit as st
+from io import BytesIO
 
 datoteka = "data/sati_volontiranja.csv"
 
@@ -9,8 +10,6 @@ if not os.path.exists(datoteka):
     df.to_csv(datoteka, index=False)
 
 df= pd.read_csv(datoteka)
-
-#df['Datum'] = pd.to_datetime(df['Datum'])
 
 df['Sati volontiranja'] = df["Sati volontiranja"].round(1)
 
@@ -48,3 +47,16 @@ with tab2:
     df1['Datum'] = df1['Datum'].dt.strftime('%d.%m.%Y')
     sortirano = df1.sort_values(by=["Datum","Ime"])
     st.dataframe(sortirano)
+
+
+    output = BytesIO()
+    sortirano.to_excel(output, index=False, engine='xlsxwriter')
+    excel_data = output.getvalue()  # Retrieve the binary data from the buffer
+
+    st.download_button(
+        label="Download data as XLSX",
+        data=excel_data,
+        file_name="data.xlsx",
+        mime="text/xlsx",
+)
+
