@@ -15,7 +15,7 @@ df['Sati volontiranja'] = df["Sati volontiranja"].round(1)
 
 st.title("Evidencija sati volontiranja")
 
-tab1, tab2 = st.tabs(["Zapisnik sati", "Sortirani podaci"])
+tab1, tab2 ,tab3 = st.tabs(["Zapisnik sati", "Sortirani podaci","Statistika"])
 
 with tab1:
     with st.form("Zapisnik sati",clear_on_submit=True):
@@ -48,15 +48,45 @@ with tab2:
     sortirano = df1.sort_values(by=["Datum","Ime"])
     st.dataframe(sortirano)
 
-
     output = BytesIO()
     sortirano.to_excel(output, index=False, engine='xlsxwriter')
     excel_data = output.getvalue()  # Retrieve the binary data from the buffer
 
     st.download_button(
-        label="Download data as XLSX",
+        label="Preuzmi u excel datoteku",
         data=excel_data,
         file_name="data.xlsx",
-        mime="text/xlsx",
-)
+        mime="text/xlsx"
+    )
 
+with tab3:
+    # Ukupni sati po osobi
+    ukupni_sati_po_osobi = df.groupby(['Ime', 'Prezime'])['Sati volontiranja'].sum().reset_index()
+
+    # Ukupni sati po mjesecu po osobi
+    df['Mjesec'] = pd.to_datetime(df['Datum']).dt.to_period('M')
+    ukupni_sati_po_mjesecu_po_osobi = df.groupby(['Ime', 'Prezime', 'Mjesec'])['Sati volontiranja'].sum().reset_index()
+
+    st.subheader("Ukupni sati po osobi")
+    st.dataframe(ukupni_sati_po_osobi)
+    output1 = BytesIO()
+    ukupni_sati_po_osobi.to_excel(output1,index=False, engine='xlsxwriter')
+    excel_po_osobi = output1.getvalue()
+    st.download_button(
+        label="Preuzmi u excel datoteku",
+        data=excel_po_osobi,
+        file_name="sati_po_osobi.xlsx",
+        mime="text/xlsx"
+    )
+
+    st.subheader("Ukupni sati mjesečno po osobi")
+    st.dataframe(ukupni_sati_po_mjesecu_po_osobi)
+    output2 = BytesIO()
+    ukupni_sati_po_mjesecu_po_osobi.to_excel(output2,index=False, engine='xlsxwriter')
+    excel_po_mjesecu_po_osobi = output2.getvalue()
+    st.download_button(
+        label="Preuzmi u excel datoteku",
+        data=excel_po_mjesecu_po_osobi,
+        file_name="sati_po_mjesecu_po_osobi.xlsx",
+        mime="text/xlsx"
+    )
